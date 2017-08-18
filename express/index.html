@@ -1,0 +1,114 @@
+<!DOCTYPE html><html><head>
+<meta charset="UTF-8">
+<title>聊天室</title>
+<style>
+body,div,ul,li{margin: 0;padding: 0;list-style: none;}
+.auto{margin: auto;}
+.l{text-align: left;}
+.r{text-align: right;}
+.flex{display: box;display: -webkit-box;display: -moz-box;display: -ms-flexbox;display: -webkit-flex;display: flex;-webkit-box-pack: center;-webkit-justify-content: center;-moz-justify-content: center;-ms-justify-content: center;-o-justify-content: center;justify-content: center;-webkit-box-align: center;-webkit-align-items: center;-moz-align-items: center;-ms-align-items: center;-o-align-items: center;align-items: center;}
+.list{background: #f1f1f1;width: 40vw;padding:1vw 2vw;height:30vw;border:1px solid #ccc;margin-top: 2vw;}
+.wrapper{width: 100%;height: 100%;overflow: hidden;}
+.chat-box{width: 100%;}
+.chat-li{display:inline-block;margin-top: 5px;background: #5CB85C;border-radius: 5px;padding: 3px 10px;color: #fff;}
+.other-chat-li{background: #fff;color: #333;}
+.send-box{width: 44vw;border:1px solid #ccc;justify-content: space-between;border-top: 0;}
+.send-text{width: 36vw; border: none; padding: 11px;outline:0;}
+.send{width: 8vw;background: #5cb85c; border: none; padding: 10px;color: #fff;cursor: pointer;}
+.chat-name{color: #f00;}
+.other-box,.self-box{width: 50%;height:100%;}
+.prompt{text-align: center;font-size: 10px;}
+.username-l{display: inline-block;font-size: 12px;margin-right: 5px;}
+.username-r{display: inline-block;font-size: 12px;margin-left: 5px;}
+</style>
+</head>
+<body>
+    <div class="list auto">
+        <div class="auto wrapper">
+            <ul class="chat-box"></ul> 
+        </div>
+    </div>
+    <div class="flex send-box auto">
+        <input class="send-text" type="text">
+        <button class="send" type="button">发送</button>
+    </div>
+</body>
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+<script src="https://qiniustatic.wodidashi.com/iscroll/iscroll-lite.js"></script>
+<script>
+    $(function(){
+        var socket = io(),
+            myScroll, scrollFlag = 1;
+        
+        var num = parseInt(Math.random()*100000),
+            username = '观众'+num+'';
+        
+        socket.emit('join', {
+            username: username
+        });
+
+        socket.on('broadcast_join', function (data) {
+            $('.chat-box').append('<li class="prompt">'+ data.username + '加入了聊天室</li>');
+        });
+
+        socket.on('broadcast_quit', function(data) {
+            $('.chat-box').append('<li class="prompt">'+ data.username + '离开了聊天室</li>');
+        });
+
+        socket.on('broadcast_say', function(data) {
+            $('.chat-box').append('<li class="l"><span class="username-l">'+data.username+'</span><span class="chat-li other-chat-li">'+ data.text +'</span></li>');
+            
+            scroll();
+        });
+        
+        $(".send").click(function(){
+            var msg = $(".send-text").val();
+            if(msg != ""){
+                socket.emit('say', {
+                    username: username,
+                    text: msg
+                });
+                $('.chat-box').append('<li class="r"><span class="chat-li">'+ msg +'</span><span class="username-r">'+username+'</span></li>');
+                $(".send-text").val("");
+
+                scroll();
+            }else{
+                return false;
+            }
+        })
+        
+        $(".send-text").keydown(function(event){
+            if(event.keyCode == 13){
+                var msg = $(".send-text").val();
+                if(msg != ""){
+                    socket.emit('say', {
+                        username: username,
+                        text: msg
+                    });
+                    $('.chat-box').append('<li class="r"><span class="chat-li">'+ msg +'</span><span class="username-r">'+username+'</span></li>');
+                    $(".send-text").val("");
+                    
+                    scroll();
+                }else{
+                    return false;
+                }
+            }
+        })
+    })
+    
+    function scroll(){
+        if($(".chat-box").height() > $(".wrapper").height()){
+            if(scrollFlag){
+                myScroll = new IScroll('.wrapper',{
+                    mouseWheel: true
+                });
+                myScroll.refresh();
+                myScroll.scrollToElement($(".chat-box")[0].lastChild,0,0,-1);
+                
+                scrollFlag = 0;
+            }
+        }
+    }
+</script>
+</html>
