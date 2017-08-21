@@ -50,15 +50,16 @@ body,div,ul,li{margin: 0;padding: 0;list-style: none;}
 
         socket.on('broadcast_join', function (data) {
             $('.chat-box').append('<li class="prompt">'+ data.username + '加入了聊天室</li>');
+            scroll();
         });
 
         socket.on('broadcast_quit', function(data) {
             $('.chat-box').append('<li class="prompt">'+ data.username + '离开了聊天室</li>');
+            scroll();
         });
 
         socket.on('broadcast_say', function(data) {
             $('.chat-box').append('<li class="l"><span class="username-l">'+data.username+'</span><span class="chat-li other-chat-li">'+ data.text +'</span></li>');
-            
             scroll();
         });
         
