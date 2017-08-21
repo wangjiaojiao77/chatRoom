@@ -39,7 +39,7 @@ body,div,ul,li{margin: 0;padding: 0;list-style: none;}
 <script>
     $(function(){
         var socket = io(),
-            myScroll, scrollFlag = 1;
+            myScroll;
         
         var num = parseInt(Math.random()*100000),
             username = '观众'+num+'';
@@ -97,6 +97,7 @@ body,div,ul,li{margin: 0;padding: 0;list-style: none;}
         })
     })
     
+    var scrollFlag = 1;
     function scroll(){
         if($(".chat-box").height() > $(".wrapper").height()){
             if(scrollFlag){
