@@ -97,19 +97,14 @@ body,div,ul,li{margin: 0;padding: 0;list-style: none;}
         })
     })
     
-    var scrollFlag = 1;
     function scroll(){
         if($(".chat-box").height() > $(".wrapper").height()){
-            if(scrollFlag){
-                myScroll = new IScroll('.wrapper',{
-                    mouseWheel: true
-                });
-                myScroll.refresh();
-                myScroll.scrollToElement($(".chat-box")[0].lastChild,0,0,-1);
-                
-                scrollFlag = 0;
-            }
-        }
+            myScroll = new IScroll('.wrapper',{
+                mouseWheel: true
+            });
+            myScroll.refresh();
+            myScroll.scrollToElement($(".chat-box")[0].lastChild,0,0,-1);
+    	}
     }
 </script>
 </html>
