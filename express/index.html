@@ -25,7 +25,7 @@ body,div,ul,li{margin: 0;padding: 0;list-style: none;}
 <body>
     <div class="list auto">
         <div class="auto wrapper">
-            <ul class="chat-box"></ul> 
+            <ul class="chat-box"></ul>
         </div>
     </div>
     <div class="flex send-box auto">
@@ -39,29 +39,30 @@ body,div,ul,li{margin: 0;padding: 0;list-style: none;}
 <script>
     $(function(){
         var socket = io(),
-            myScroll, scrollFlag = 1;
-        
+            myScroll;
+
         var num = parseInt(Math.random()*100000),
             username = '观众'+num+'';
-        
+
         socket.emit('join', {
             username: username
         });
 
         socket.on('broadcast_join', function (data) {
             $('.chat-box').append('<li class="prompt">'+ data.username + '加入了聊天室</li>');
+            scroll();
         });
 
         socket.on('broadcast_quit', function(data) {
             $('.chat-box').append('<li class="prompt">'+ data.username + '离开了聊天室</li>');
+            scroll();
         });
 
         socket.on('broadcast_say', function(data) {
             $('.chat-box').append('<li class="l"><span class="username-l">'+data.username+'</span><span class="chat-li other-chat-li">'+ data.text +'</span></li>');
-            
             scroll();
         });
-        
+
         $(".send").click(function(){
             var msg = $(".send-text").val();
             if(msg != ""){
@@ -77,7 +78,7 @@ body,div,ul,li{margin: 0;padding: 0;list-style: none;}
                 return false;
             }
         })
-        
+
         $(".send-text").keydown(function(event){
             if(event.keyCode == 13){
                 var msg = $(".send-text").val();
@@ -88,7 +89,7 @@ body,div,ul,li{margin: 0;padding: 0;list-style: none;}
                     });
                     $('.chat-box').append('<li class="r"><span class="chat-li">'+ msg +'</span><span class="username-r">'+username+'</span></li>');
                     $(".send-text").val("");
-                    
+
                     scroll();
                 }else{
                     return false;
@@ -96,19 +97,15 @@ body,div,ul,li{margin: 0;padding: 0;list-style: none;}
             }
         })
     })
-    
+
     function scroll(){
         if($(".chat-box").height() > $(".wrapper").height()){
-            if(scrollFlag){
-                myScroll = new IScroll('.wrapper',{
-                    mouseWheel: true
-                });
-                myScroll.refresh();
-                myScroll.scrollToElement($(".chat-box")[0].lastChild,0,0,-1);
-                
-                scrollFlag = 0;
-            }
-        }
+            myScroll = new IScroll('.wrapper',{
+                mouseWheel: true
+            });
+            myScroll.refresh();
+            myScroll.scrollToElement($(".chat-box")[0].lastChild,0,0,-1);
+    	}
     }
 </script>
 </html>
