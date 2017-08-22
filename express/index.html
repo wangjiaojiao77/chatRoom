@@ -14,27 +14,38 @@ body{color: #fff;}
 .chat-box li{margin-bottom: 8px;}
 .chat-li{text-align:left;max-width:78%;display:inline-block;background: #5CB85C;border-radius: 5px;padding: 3px 10px;color: #fff;}
 .other-chat-li{background: #fff;color: #333;}
-.send-box{width: 44vw;border:1px solid #ccc;justify-content: space-between;border-top: 0;}
+.send-box{position:relative;z-index:2;width: 44vw;border:1px solid #ccc;justify-content: space-between;border-top: 0;}
 .send-text{width: 36vw; border: none; padding: 11px;outline:0;}
 .send{width: 8vw;background: #5cb85c; border: none; padding: 10px;color: #fff;cursor: pointer;}
 .other-box,.self-box{width: 50%;height:100%;}
 .prompt{text-align: center;font-size: 10px;}
 .username-l{display: inline-block;font-size: 12px;margin-right: 5px;vertical-align:top;margin-top: 2px;}
 .username-r{display: inline-block;font-size: 12px;margin-left: 5px;vertical-align:top;margin-top: 2px;}
-canvas{background-image: linear-gradient(6deg, #214, #000);background-size: 100% 100%;overflow:hidden;width: 100%;height: 100%;position: absolute;left: 0;top: 0;z-index: 1;}
+.con{position: absolute;left: 30vw;top: 0;}
+#mainCanvas{width: 100%;height: 100%;}
 </style>
 </head>
 <body>
-    <div class="list auto">
-    	<canvas id="canvas-club"></canvas>
-        <div class="auto wrapper">
-            <ul class="chat-box"></ul>
-        </div>
-    </div>
-    <div class="flex send-box auto">
-        <input class="send-text" type="text">
-        <button class="send" type="button">发送</button>
-    </div>
+	<div id="outer">
+		<div id="canvasContainer">
+			<canvas id="mainCanvas" width="1000" height="560"></canvas>
+			<div id="output"></div>
+		</div>
+	</div>
+
+	<div class="con">
+		<div class="list auto">
+	    	<!--<canvas id="canvas-club"></canvas>-->
+	        <div class="auto wrapper">
+	            <ul class="chat-box"></ul>
+	        </div>
+	    </div>
+	    <div class="flex send-box auto">
+	        <input class="send-text" type="text">
+	        <button class="send" type="button">发送</button>
+	    </div>
+	</div>
+
 </body>
 <script src="/socket.io/socket.io.js"></script>
 <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
@@ -132,6 +143,88 @@ canvas{background-image: linear-gradient(6deg, #214, #000);background-size: 100%
     }
 </script>
 <script>
+	(function(){
+	function C(){
+		e.globalCompositeOperation="source-over";
+		e.fillStyle="rgba(8,8,12,0.65)";
+		e.fillRect(0,0,f,p);
+		e.globalCompositeOperation="lighter";
+		x=q-u;
+		y=r-v;
+		u=q;
+		v=r;
+		for(var d=0.86*f,l=0.125*f,m=0.5*f,t=Math.random,n=Math.abs,o=z;o--;){
+			var h=A[o],i=h.x,j=h.y,a=h.a,b=h.b,c=i-q,k=j-r,g=Math.sqrt(c*c+k*k)||0.001,c=c/g,k=k/g;
+			if(w&&g<m)
+			var s=14*(1-g/m),a=a+(c*s+0.5-t()),b=b+(k*s+0.5-t());
+			g<d&&(s=0.0014*(1-g/d)*f,a-=c*s,b-=k*s);
+			g<l&&(c=2.6E-4*(1-g/l)*f,a+=x*c,b+=y*c);
+			a*=B;
+			b*=B;
+			c=n(a);
+			k=n(b);
+			g=0.5*(c+k);
+			0.1>c&&(a*=3*t());
+			0.1>k&&(b*=3*t());
+			c=0.45*g;
+			c=Math.max(Math.min(c,3.5),0.4);
+			i+=a;
+			j+=b;
+			i>f?(i=f,a*=-1):0>i&&(i=0,a*=-1);
+			j>p?(j=p,b*=-1):0>j&&(j=0,b*=-1);
+			h.a=a;
+			h.b=b;
+			h.x=i;
+			h.y=j;
+			e.fillStyle=h.color;
+			e.beginPath();
+			e.arc(i,j,c,0,D,!0);
+			e.closePath();
+			e.fill()
+		}
+	}
+	function E(d){
+		d=d?d:window.event;
+		q=d.clientX-m.offsetLeft-n.offsetLeft;
+		r=d.clientY-m.offsetTop-n.offsetTop
+	}
+	function F(){
+		w=!0;
+		return!1
+	}
+	function G(){
+		return w=!1
+	}
+	function H(){
+		this.color="rgb("+Math.floor(255*Math.random())+","+Math.floor(255*Math.random())+","+Math.floor(255*Math.random())+")";
+		this.b=this.a=this.x=this.y=0;
+		this.size=1
+	}
+	var D=2*Math.PI,f=1E3,p=560,z=600,B=0.96,A=[],o,e,n,m,q,r,x,y,u,v,w;
+	window.onload=function(){
+		o=document.getElementById("mainCanvas");
+		if(o.getContext){
+			m=document.getElementById("outer");
+			n=document.getElementById("canvasContainer");
+			e=o.getContext("2d");
+			for(var d=z;d--;){
+				var l=new H;
+				l.x=0.5*f;
+				l.y=0.5*p;
+				l.a=34*Math.cos(d)*Math.random();
+				l.b=34*Math.sin(d)*Math.random();
+				A[d]=l}q=u=0.5*f;r=v=0.5*p;
+				document.getElementById("canvasContainer").onmousedown=F;
+				document.getElementById("canvasContainer").onmouseup=G;
+				document.getElementById("canvasContainer").onmousemove=E;
+				setInterval(C,33);
+				document.getElementById("output").innerHTML='用鼠标进行滑动或点击'
+			}
+		else document.getElementById("output").innerHTML="对不起，需要最新版本的Chrome, Firefox, Opera, Safari, or Internet Explorer 9."
+	}
+})();
+</script>
+<!--<script>
 	var c = document.getElementById("canvas-club");
 var ctx = c.getContext("2d");
 var w = c.width = $(".list").width();
@@ -238,5 +331,5 @@ window.addEventListener("resize", resize);
 
 setup();
 anim();
-</script>
+</script>-->
 </html>
