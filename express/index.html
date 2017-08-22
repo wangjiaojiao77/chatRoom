@@ -11,13 +11,12 @@ body{color: #fff;}
 .list{position:relative;width: 40vw;padding:1vw 2vw;height:30vw;border:1px solid #ccc;margin-top: 2vw;}
 .wrapper{width: 100%;height: 100%;overflow: hidden;position: relative;z-index: 2;}
 .chat-box{width: 100%;}
-.chat-box li{margin-top: 8px;}
+.chat-box li{margin-bottom: 8px;}
 .chat-li{text-align:left;max-width:78%;display:inline-block;background: #5CB85C;border-radius: 5px;padding: 3px 10px;color: #fff;}
 .other-chat-li{background: #fff;color: #333;}
 .send-box{width: 44vw;border:1px solid #ccc;justify-content: space-between;border-top: 0;}
 .send-text{width: 36vw; border: none; padding: 11px;outline:0;}
 .send{width: 8vw;background: #5cb85c; border: none; padding: 10px;color: #fff;cursor: pointer;}
-.chat-name{color: #f00;}
 .other-box,.self-box{width: 50%;height:100%;}
 .prompt{text-align: center;font-size: 10px;}
 .username-l{display: inline-block;font-size: 12px;margin-right: 5px;vertical-align:top;margin-top: 2px;}
@@ -27,6 +26,7 @@ canvas{background-image: linear-gradient(6deg, #214, #000);background-size: 100%
 </head>
 <body>
     <div class="list auto">
+    	<canvas id="canvas-club"></canvas>
         <div class="auto wrapper">
             <ul class="chat-box"></ul>
         </div>
@@ -42,7 +42,7 @@ canvas{background-image: linear-gradient(6deg, #214, #000);background-size: 100%
 <script>
     $(function(){
         var socket = io(),
-            myScroll;
+            myScroll, titleFlag;
 
         var num = parseInt(Math.random()*100000),
             username = '观众'+num+'';
@@ -50,6 +50,18 @@ canvas{background-image: linear-gradient(6deg, #214, #000);background-size: 100%
         socket.emit('join', {
             username: username
         });
+
+        document.addEventListener('visibilitychange',function(e){
+			e = e || event;
+			var hide = e.target.hidden;
+			if(hide){
+				pageHide = true;
+			}else{
+				pageHide = false;
+				document.title = '聊天室';
+				clearInterval(titleFlag);
+			}
+		})
 
         socket.on('broadcast_join', function (data) {
             $('.chat-box').append('<li class="prompt">'+ data.username + '加入了聊天室</li>');
@@ -62,6 +74,14 @@ canvas{background-image: linear-gradient(6deg, #214, #000);background-size: 100%
         });
 
         socket.on('broadcast_say', function(data) {
+        	document.title = "新消息";
+        	titleFlag = setInterval(function(){
+				if(document.title == "新消息"){
+					document.title = ".";
+				}else{
+					document.title = "新消息"
+				}
+        	},1)
             $('.chat-box').append('<li class="l"><span class="username-l">'+data.username+'</span><span class="chat-li other-chat-li">'+ data.text +'</span></li>');
             scroll();
         });
@@ -112,268 +132,111 @@ canvas{background-image: linear-gradient(6deg, #214, #000);background-size: 100%
     }
 </script>
 <script>
-class Vector2 {
-	constructor(x = 0, y = 0) {
-		this.x = x;
-		this.y = y;
-	}
+	var c = document.getElementById("canvas-club");
+var ctx = c.getContext("2d");
+var w = c.width = $(".list").width();
+var h = c.height = $(".list").height();
+var clearColor = 'rgba(0, 0, 0, .1)';
+var max = 20;
+var drops = [];
 
-	add(v) {
-		this.x += v.x;
-		this.y += v.y;
-		return this;
-	}
-
-	multiplyScalar(s) {
-		this.x *= s;
-		this.y *= s;
-		return this;
-	}
-
-	clone() {
-		return new Vector2(this.x, this.y);
-	}
+function random(min, max) {
+    return Math.random() * (max - min) + min;
 }
 
-class Time {
-	constructor() {
-		const now = Time.now();
+function O() {}
 
-		this.delta = 0;
-		this.elapsed = 0;
-		this.start = now;
-		this.previous = now;
-	}
+O.prototype = {
+	init: function() {
+		this.x = random(0, w);
+		this.y = 0;
+		this.color = 'hsl(180, 100%, 50%)';
+		this.w = 2;
+		this.h = 1;
+		this.vy = random(4, 5);
+		this.vw = 3;
+		this.vh = 1;
+		this.size = 2;
+		this.hit = random(h * .8, h * .9);
+		this.a = 1;
+		this.va = .96;
+	},
+	draw: function() {
+		if (this.y > this.hit) {
+			ctx.beginPath();
+			ctx.moveTo(this.x, this.y - this.h / 2);
 
-	update() {
-		const now = Time.now();
+			ctx.bezierCurveTo(
+				this.x + this.w / 2, this.y - this.h / 2,
+				this.x + this.w / 2, this.y + this.h / 2,
+				this.x, this.y + this.h / 2);
 
-		this.delta = now - this.previous;
-		this.elapsed = now - this.start;
-		this.previous = now;
-	}
+			ctx.bezierCurveTo(
+				this.x - this.w / 2, this.y + this.h / 2,
+				this.x - this.w / 2, this.y - this.h / 2,
+				this.x, this.y - this.h / 2);
 
-	static now() {
-		return Date.now() / 1000;
-	}
-}
+			ctx.strokeStyle = 'hsla(180, 100%, 50%, '+this.a+')';
+			ctx.stroke();
+			ctx.closePath();
 
-class Particle {
-	constructor(position, velocity = new Vector2, color = 'white', radius = 1, lifetime = 1, mass = 1) {
-		this.position = position;
-		this.velocity = velocity;
-		this.color = color;
-		this.radius = radius;
-		this.lifetime = lifetime;
-		this.mass = mass;
-
-		this.isInCanvas = true;
-		this.createdOn = Time.now();
-	}
-
-	update(time) {
-		if (!this.getRemainingLifetime()) {
-			return;
+		} else {
+			ctx.fillStyle = this.color;
+			ctx.fillRect(this.x, this.y, this.size, this.size * 5);
 		}
-
-		this.velocity.add(Particle.GRAVITATION.clone().multiplyScalar(this.mass));
-		this.position.add(this.velocity.clone().multiplyScalar(time.delta));
-	}
-
-	render(canvas, context) {
-		const remainingLifetime = this.getRemainingLifetime();
-
-		if (!remainingLifetime) return;
-
-		const radius = this.radius * remainingLifetime;
-
-		context.globalAlpha = remainingLifetime;
-		context.globalCompositeOperation = 'lighter';
-		context.fillStyle = this.color;
-
-		context.beginPath();
-		context.arc(this.position.x, this.position.y, radius, 0, Math.PI * 2);
-		context.fill();
-	}
-
-	getRemainingLifetime() {
-		const elapsedLifetime = Time.now() - this.createdOn;
-		return Math.max(0, this.lifetime - elapsedLifetime) / this.lifetime;
-	}
-}
-
-Particle.GRAVITATION = new Vector2(0, 9.81);
-
-class Trail extends Particle {
-	constructor(childFactory, position, velocity = new Vector2, lifetime = 1, mass = 1) {
-		super(position, velocity);
-
-		this.childFactory = childFactory;
-		this.children = [];
-		this.lifetime = lifetime;
-		this.mass = mass;
-
-		this.isAlive = true;
-	}
-
-	update(time) {
-		super.update(time);
-
-		// Add a new child on every frame
-		if (this.isAlive && this.getRemainingLifetime()) {
-			this.children.push(this.childFactory(this));
-		}
-
-		// Remove particles that are dead
-		this.children = this.children.filter(function(child) {
-			if (child instanceof Trail) {
-				return child.isAlive;
+		this.update();
+	},
+	update: function() {
+		if(this.y < this.hit){
+			this.y += this.vy;
+		} else {
+			if(this.a > .03){
+				this.w += this.vw;
+				this.h += this.vh;
+				if(this.w > 100){
+					this.a *= this.va;
+					this.vw *= .98;
+					this.vh *= .98;
+				}
+			} else {
+				this.init();
 			}
-
-			return child.getRemainingLifetime();
-		});
-
-		// Kill trail if all particles fade away
-		if (!this.children.length) {
-			this.isAlive = false;
 		}
 
-		// Update particles
-		this.children.forEach(function(child) {
-			child.update(time);
-		});
-	}
-
-	render(canvas, context) {
-		// Render all children
-		this.children.forEach(function(child) {
-			child.render(canvas, context);
-		});
 	}
 }
 
-class Rocket extends Trail {
-	constructor(childFactory, explosionFactory, position, velocity = new Vector2) {
-		super(childFactory, position, velocity);
+function resize(){
+	w = c.width = window.innerWidth;
+	h = c.height = window.innerHeight;
+}
 
-		this.explosionFactory = explosionFactory;
-		this.lifetime = 10;
-	}
-
-	update(time) {
-		if (this.getRemainingLifetime() && this.velocity.y > 0) {
-			this.explosionFactory(this);
-			this.lifetime = 0;
-		}
-
-		super.update(time);
+function setup(){
+	for(var i = 0; i < max; i++){
+		(function(j){
+			setTimeout(function(){
+				var o = new O();
+				o.init();
+				drops.push(o);
+			}, j * 5000)
+		}(i));
 	}
 }
 
-const canvas = document.createElement('canvas');
-const context = canvas.getContext('2d');
-const time = new Time;
-let rockets = [];
 
-const getTrustParticleFactory = function(baseHue) {
-	function getColor() {
-		const hue = Math.floor(Math.random() * 15 + 30);
-		return `hsl(${hue}, 100%, 75%`;
+function anim() {
+	ctx.fillStyle = clearColor;
+	ctx.fillRect(0,0,w,h);
+	for(var i in drops){
+		drops[i].draw();
 	}
+	requestAnimationFrame(anim);
+}
 
-	return function(parent) {
-		const position = this.position.clone();
-		const velocity = this.velocity.clone().multiplyScalar(-.1);
-		velocity.x += (Math.random() - .5) * 8;
-		const color = getColor();
-		const radius = 1 + Math.random();
-		const lifetime = .5 + Math.random() * .5;
-		const mass = .01;
 
-		return new Particle(position, velocity, color, radius, lifetime, mass);
-	};
-};
+window.addEventListener("resize", resize);
 
-const getExplosionFactory = function(baseHue) {
-	function getColor() {
-		const hue = Math.floor(baseHue + Math.random() * 15) % 360;
-		const lightness = Math.floor(Math.pow(Math.random(), 2) * 50 + 50);
-		return `hsl(${hue}, 100%, ${lightness}%`;
-	}
-
-	function getChildFactory() {
-		return function(parent) {
-			const direction = Math.random() * Math.PI * 2;
-			const force = 8;
-			const velocity = new Vector2(Math.cos(direction) * force, Math.sin(direction) * force);
-			const color = getColor();
-			const radius = 1 + Math.random();
-			const lifetime = 1;
-			const mass = .1;
-
-			return new Particle(parent.position.clone(), velocity, color, radius, lifetime, mass);
-		};
-	}
-
-	function getTrail(position) {
-		const direction = Math.random() * Math.PI * 2;
-		const force = Math.random() * 128;
-		const velocity = new Vector2(Math.cos(direction) * force, Math.sin(direction) * force);
-		const lifetime = .5 + Math.random();
-		const mass = .075;
-
-		return new Trail(getChildFactory(), position, velocity, lifetime, mass);
-	}
-
-	return function(parent) {
-		let trails = 32;
-		while (trails--) {
-			parent.children.push(getTrail(parent.position.clone()));
-		}
-	};
-};
-
-const addRocket = function() {
-	const trustParticleFactory = getTrustParticleFactory();
-	const explosionFactory = getExplosionFactory(Math.random() * 360);
-
-	const position = new Vector2(Math.random() * canvas.width, canvas.height);
-	const thrust = window.innerHeight * .75;
-	const angle = Math.PI / -2 + (Math.random() - .5) * Math.PI / 8;
-	const velocity = new Vector2(Math.cos(angle) * thrust, Math.sin(angle) * thrust);
-	const lifetime = 3;
-
-	rockets.push(new Rocket(trustParticleFactory, explosionFactory, position, velocity, lifetime));
-
-	rockets = rockets.filter(function(rocket) {
-		return rocket.isAlive;
-	});
-};
-
-const render = function() {
-	requestAnimationFrame(render);
-
-	time.update();
-	context.clearRect(0, 0, canvas.width, canvas.height);
-
-	rockets.forEach(function(rocket) {
-		rocket.update(time);
-		rocket.render(canvas, context);
-	});
-};
-
-const resize = function() {
-	canvas.height = $(".list").height();
-	canvas.width = $(".list").width();
-};
-
-canvas.onclick = addRocket;
-document.getElementsByClassName("list")[0].appendChild(canvas);
-
-window.onresize = resize;
-resize();
-
-setInterval(addRocket, 2000);
-render();
+setup();
+anim();
 </script>
 </html>
