@@ -1,14 +1,16 @@
 <!DOCTYPE html><html><head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>聊天室</title>
 <style>
 body,div,ul,li{margin: 0;padding: 0;list-style: none;}
 body{color: #fff;}
+.title{color: #333;text-align: center;font-family: "arial, helvetica, sans-serif";}
 .auto{margin: auto;}
 .l{text-align: left;}
 .r{text-align: right;}
 .flex{display: box;display: -webkit-box;display: -moz-box;display: -ms-flexbox;display: -webkit-flex;display: flex;-webkit-box-pack: center;-webkit-justify-content: center;-moz-justify-content: center;-ms-justify-content: center;-o-justify-content: center;justify-content: center;-webkit-box-align: center;-webkit-align-items: center;-moz-align-items: center;-ms-align-items: center;-o-align-items: center;align-items: center;}
-.list{position:relative;width: 40vw;padding:1vw 2vw;height:30vw;border:1px solid #ccc;margin-top: 2vw;}
+.list{position:relative;overflow:hidden;width: 40vw;padding:2vw;height:30vw;border:1px solid #ccc;}
 .wrapper{width: 100%;height: 100%;overflow: hidden;position: relative;z-index: 2;}
 .chat-box{width: 100%;}
 .chat-box li{margin-bottom: 8px;}
@@ -22,9 +24,16 @@ body{color: #fff;}
 .username-l{display: inline-block;font-size: 12px;margin-right: 5px;vertical-align:top;margin-top: 2px;}
 .username-r{display: inline-block;font-size: 12px;margin-left: 5px;vertical-align:top;margin-top: 2px;}
 canvas{width: 100%;height: 100%;position: absolute;left: 0;top: 0;z-index: 1;}
+@media only screen and (max-width: 420px) {
+	.list{width: 95vw;height: 70vw;}
+	.send-box{width: 99vw;}
+	.send-text{width: 79vw;}
+	.send{width: 20vw;}
+}
 </style>
 </head>
 <body>
+	<h3 class="title">chat room</h3>
     <div class="list auto">
     	<canvas id="canvas-club"></canvas>
         <div class="auto wrapper">
@@ -132,7 +141,7 @@ canvas{width: 100%;height: 100%;position: absolute;left: 0;top: 0;z-index: 1;}
     }
 </script>
 <script>
-	var c = document.getElementById("canvas-club");
+var c = document.getElementById("canvas-club");
 var ctx = c.getContext("2d");
 var w = c.width = $(".list").width();
 var h = c.height = $(".list").height();
